@@ -23,6 +23,12 @@
  '(hl-line ((t (:background "gray21"))))
  '(region ((t (:background "dark green" :foreground "white")))))
 
+
+(require 'package)
+(add-to-list 'package-archives
+             '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+(package-initialize)
+
 ;; create more beautiful code blocks in the scource code
 (defface org-block-begin-line
   '((t (:underline "#A7A6AA" :foreground "#008ED1" :background "#202020")))
@@ -113,10 +119,6 @@
 (global-set-key (kbd "<C-left>") 'shrink-window-horizontally)
 (global-set-key (kbd "<C-right>") 'enlarge-window-horizontally)
 
-(require 'package)
-(add-to-list 'package-archives
-             '("melpa-stable" . "http://stable.melpa.org/packages/") t)
-(package-initialize)
 
 
 (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
@@ -196,3 +198,52 @@
 
 ;; better pdf viewer.
 (pdf-tools-install)
+
+;; Better kill-ring usage.
+(require 'popup)
+(require 'pos-tip)
+(require 'popup-kill-ring)
+(global-set-key "\M-y" 'popup-kill-ring)
+
+;;
+;; * If you insert a selected item interactively, add following line to
+;;   your .emacs.
+;;
+;;   (setq popup-kill-ring-interactive-insert t)
+
+;; Google-this
+(use-package google-this
+  :config
+  (google-this-mode 1))
+
+;; remove error from this file
+(setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
+
+;;;;;;
+(require 'ediff)
+;; don't start another frame
+;; this is done by default in preluse
+(setq ediff-window-setup-function 'ediff-setup-windows-plain)
+;; put windows side by side
+(setq ediff-split-window-function (quote split-window-horizontally))
+;;revert windows on exit - needs winner mode
+(winner-mode)
+(add-hook 'ediff-after-quit-hook-internal 'winner-undo)
+
+
+
+;;preview files in dired
+(use-package peep-dired
+  :ensure t
+  :defer t ; don't access `dired-mode-map' until `peep-dired' is loaded
+  :bind (:map dired-mode-map
+              ("P" . peep-dired)))
+
+
+;; weather from wttr.in
+(use-package wttrin
+  :ensure t
+  :commands (wttrin)
+  :init
+  (setq wttrin-default-cities '("Göteborg")))
+
