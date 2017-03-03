@@ -23,11 +23,19 @@
  '(hl-line ((t (:background "gray21"))))
  '(region ((t (:background "dark green" :foreground "white")))))
 
-
 (require 'package)
 (add-to-list 'package-archives
              '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 (package-initialize)
+
+;; Fix zsh shell
+(setenv "ESHELL" (expand-file-name "~/bin/eshell"))
+
+;; (let ((path-from-shell
+;;        (replace-regexp-in-string "\n" "" (shell-command-to-string
+;;                                           "$SHELL -l -c 'echo $PATH'"))))
+;;   (setenv "PATH" path-from-shell)
+;;   (setq exec-path (split-string path-from-shell path-separator)))
 
 ;; create more beautiful code blocks in the scource code
 (defface org-block-begin-line
@@ -112,6 +120,7 @@
  '(  (ruby . t)
      (C . t)
      (emacs-lisp . t)
+     (java . t)
      ))
 
 (global-set-key (kbd "<C-up>") 'shrink-window)
@@ -134,7 +143,7 @@
 
 ;; Fix java indentation
 (defun my-jde-mode-hook ()
-(setq c-basic-offset 2))
+  (setq c-basic-offset 2))
 
 (add-hook 'jde-mode-hook 'my-jde-mode-hook)
 (add-hook 'java-mode-hook 'my-jde-mode-hook)
@@ -144,8 +153,8 @@
 
 
 ;; Autocomplete tabs Not needed anymore.
-; (global-set-key (kbd "C-<tab>") 'dabbrev-expand)
-; (define-key minibuffer-local-map (kbd "C-<tab>") 'dabbrev-expand)
+                                        ; (global-set-key (kbd "C-<tab>") 'dabbrev-expand)
+                                        ; (define-key minibuffer-local-map (kbd "C-<tab>") 'dabbrev-expand)
 
 ;; Better scrolling
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
@@ -154,8 +163,7 @@
 ;; Erlang indentation
 (setq erlang-indent-level 4)
 
-;; Fix zsh shell
-(setenv "ESHELL" (expand-file-name "~/bin/eshell"))
+
 
 
 (add-to-list 'package-archives
@@ -189,10 +197,18 @@
 
 (set-face-attribute 'default nil :height 170)
 ;; Matlab
- (autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
- (add-to-list
-  'auto-mode-alist
-  '("\\.m$" . matlab-mode))
+(add-to-list 'exec-path "/home/neon/opt/matlabinstallation/bin")
+;(setq exec-path '())
+
+(add-to-list 'load-path "~/.emacs.d/elpa/matlab-mode-20160902.459/matlab.el")
+(load-library "matlab-load")
+;; Enable CEDET feature support for MATLAB code. (Optional)
+(matlab-cedet-setup)
+
+(autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
+(add-to-list
+ 'auto-mode-alist
+ '("\\.m$" . matlab-mode))
 (setq matlab-indent-function t)
 (setq matlab-shell-command "matlab")
 
@@ -203,7 +219,7 @@
 (require 'popup)
 (require 'pos-tip)
 (require 'popup-kill-ring)
-(global-set-key "\M-y" 'popup-kill-ring)
+;; (global-set-key "\M-y" 'popup-kill-ring) doesnt work proerply
 
 ;;
 ;; * If you insert a selected item interactively, add following line to
@@ -239,6 +255,11 @@
   :bind (:map dired-mode-map
               ("P" . peep-dired)))
 
+(use-package dired-narrow
+  :ensure t
+  :bind (:map dired-mode-map
+              ("/" . dired-narrow)))
+
 
 ;; weather from wttr.in
 (use-package wttrin
@@ -247,3 +268,69 @@
   :init
   (setq wttrin-default-cities '("Göteborg")))
 
+
+(global-set-key [remap goto-line] 'goto-line-with-feedback)
+
+(defun goto-line-with-feedback ()
+  "Show line numbers temporarily, while prompting for the line number input"
+  (interactive)
+  (unwind-protect
+      (progn
+        (linum-mode 1)
+        (goto-line (read-number "Goto line: ")))
+    (linum-mode -1)))
+
+(defun tf-toggle-show-trailing-whitespace ()
+  "Toggle show-trailing-whitespace between t and nil"
+  (interactive)
+  (setq show-trailing-whitespace (not show-trailing-whitespace))
+  (redraw-display))
+
+(global-set-key (kbd "M-p") 'tf-toggle-show-trailing-whitespace)
+
+;; Require org mode to be able to export to markdown
+(require 'ox-md)
+
+;; Org-mode src block syntax highlighting 
+(setq org-src-fontify-natively t)
+
+(require 'tls)
+
+
+;; What is current buffer? 
+(global-set-key (kbd "M-?") 'flash-active-buffer)
+
+(make-face 'flash-active-buffer-face)
+(set-face-attribute 'flash-active-buffer-face nil
+                    :background "red"
+                    :foreground "black")
+(defun flash-active-buffer ()
+  (interactive)
+  (run-at-time "100 millisec" nil
+               (lambda (remap-cookie)
+                 (face-remap-remove-relative remap-cookie))
+               (face-remap-add-relative 'default 'flash-active-buffer-face)))
+
+
+;; Highlight current frame
+(set-face-attribute  'mode-line
+                 nil 
+                 :foreground "misty_rose"
+                 :background "#000075" 
+                 :box '(:line-width 1 :style released-button))
+(set-face-attribute  'mode-line-inactive
+                 nil 
+                 :foreground "gray60"
+                 :background "gray10" 
+                 :box '(:line-width 1 :style released-button))
+
+
+(use-package which-key
+  :ensure t
+  :config
+  (which-key-mode))
+
+(use-package ace-window
+  :ensure t
+  :config
+  (global-set-key (kbd "C-c p") 'ace-window))
