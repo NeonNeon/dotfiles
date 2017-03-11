@@ -78,10 +78,15 @@
 ;; Some offset?
 (c-set-offset (quote substatement-open) 0 nil)
 
+;; Save all tempfiles in $TMPDIR/emacs$UID/                                                        
+(defconst emacs-tmp-dir (format "%s%s%s/" temporary-file-directory "emacs" (user-uid)))
 (setq backup-directory-alist
-      `((".*" . ,temporary-file-directory)))
+      `((".*" . ,emacs-tmp-dir)))
 (setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
+      `((".*" ,emacs-tmp-dir t)))
+(setq auto-save-list-file-prefix
+      emacs-tmp-dir)
+
 
 ;; fix ^ bug
 (require 'iso-transl)
@@ -119,8 +124,12 @@
  'org-babel-load-languages
  '(  (ruby . t)
      (C . t)
+     (python . t)
      (emacs-lisp . t)
      (java . t)
+     (latex . t)
+     (matlab . t)
+     (octave . t)
      ))
 
 (global-set-key (kbd "<C-up>") 'shrink-window)
@@ -325,12 +334,87 @@
                  :box '(:line-width 1 :style released-button))
 
 
+;; Which-key shows what keys I can press to do commands
 (use-package which-key
   :ensure t
   :config
   (which-key-mode))
 
+
+;; Ace-window lets me easier choose which window I want to select
 (use-package ace-window
   :ensure t
   :config
   (global-set-key (kbd "C-c p") 'ace-window))
+
+;; Expand region, can not live without
+(use-package expand-region
+  :ensure t
+  :config
+  (global-set-key (kbd "C-=") 'er/expand-region))
+
+(use-package iedit
+  :ensure t)
+
+;; if you're windened, narrow to the region, if you're narrowed, widen
+;; bound to C-x n
+(defun narrow-or-widen-dwim (p)
+  "If the buffer is narrowed, it widens. Otherwise, it narrows intelligently.
+Intelligently means: region, org-src-block, org-subtree, or defun,
+whichever applies first.
+Narrowing to org-src-block actually calls `org-edit-src-code'.
+
+With prefix P, don't widen, just narrow even if buffer is already
+narrowed."
+  (interactive "P")
+  (declare (interactive-only))
+  (cond ((and (buffer-narrowed-p) (not p)) (widen))
+        ((region-active-p)
+         (narrow-to-region (region-beginning) (region-end)))
+        ((derived-mode-p 'org-mode)
+         ;; `org-edit-src-code' is not a real narrowing command.
+         ;; Remove this first conditional if you don't want it.
+         (cond ((ignore-errors (org-edit-src-code))
+                (delete-other-windows))
+               ((org-at-block-p)
+                (org-narrow-to-block))
+               (t (org-narrow-to-subtree))))
+        (t (narrow-to-defun))))
+
+;; (define-key endless/toggle-map "n" #'narrow-or-widen-dwim)
+;; This line actually replaces Emacs' entire narrowing keymap, that's
+;; how much I like this command. Only copy it if that's what you want.
+(define-key ctl-x-map "n" #'narrow-or-widen-dwim)
+
+
+;; When using isearch, if i stop the search with C-RET
+;; TODO fix this to work with reverse search as well
+(define-key isearch-mode-map [(control return)]
+  #'isearch-exit-other-end)
+(defun isearch-exit-other-end ()
+  "Exit isearch, at the opposite end of the string."
+  (interactive)
+  (isearch-exit)
+  (goto-char isearch-other-end))
+
+;; Show where the cursor is by highlighting the row when scrolling
+(use-package beacon
+  :ensure t
+  :config
+  (beacon-mode 1)
+  (setq beacon-color "#666600"))
+
+(defun modi/multi-pop-to-mark (orig-fun &rest args)
+  "Call ORIG-FUN until the cursor moves.
+Try the repeated popping up to 10 times."
+  (let ((p (point)))
+    (dotimes (i 10)
+      (when (= p (point))
+        (apply orig-fun args)))))
+
+;; Do not save multiple instances of the same mark position
+(advice-add 'pop-to-mark-command :around
+            #'modi/multi-pop-to-mark)
+
+;; Easier to move to mark with C-SPACE,SPACE...
+(setq set-mark-command-repeat-pop t)
