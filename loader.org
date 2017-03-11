@@ -1,0 +1,69 @@
+#+TITLE My GNU Emacs configuration
+#+OPTIONS: H:5 num:nil tags:nil toc:nil timestamps:t
+#+DESCRIPTION: Loading emacs configuration using org-babel
+# Based on
+# https://github.com/credmp/emacs-config/blob/master/loader.org
+
+* Introduction
+This is my first attempt to use org-mode to write my configuration file.
+
+#+BEGIN_SRC emacs-lisp
+  (setq user-full-name "Erik Norlander")
+  (setq user-mail-address "e.olof.norlander@gmail.com")
+#+END_SRC
+
+
+* A secure Emacs environment
+*This section is taken directly from the file that I used as a
+[[https://github.com/credmp/emacs-config/blob/master/loader.org][template]].*
+
+Great article why [[https://glyph.twistedmatrix.com/2015/11/editor-malware.html][Your editor is malware]]. The following basically sets up the configuration to adhere to the articles recommondations.
+
+#+BEGIN_SRC sh :exports none
+python -m pip install --user certifi
+#+END_SRC
+
+#+RESULTS:
+: Requirement already satisfied: certifi in /home/neon/.local/lib/python2.7/site-packages
+
+#+BEGIN_SRC emacs-lisp
+  ;;  (if (fboundp 'gnutls-available-p)
+  ;;      (fmakunbound 'gnutls-available-p))
+
+  (require 'cl)
+  (setq tls-checktrust t)
+
+  (setq python (or (executable-find "py.exe")
+                   (executable-find "python")
+                   ))
+
+  (let ((trustfile
+         (replace-regexp-in-string
+          "\\\\" "/"
+          (replace-regexp-in-string
+           "\n" ""
+           (shell-command-to-string (concat python " -m certifi"))))))
+    (setq tls-program
+          (list
+           (format "gnutls-cli%s --x509cafile %s -p %%p %%h"
+                   (if (eq window-system 'w32) ".exe" "") trustfile)))
+    (setq gnutls-verify-error t)
+    (setq gnutls-trustfiles (list trustfile)))
+
+  ;; Test the settings by using the following code snippet:
+  ;;  (let ((bad-hosts
+  ;;         (loop for bad
+  ;;               in `("https://wrong.host.badssl.com/"
+  ;;                    "https://self-signed.badssl.com/")
+  ;;               if (condition-case e
+  ;;                      (url-retrieve
+  ;;                       bad (lambda (retrieved) t))
+  ;;                    (error nil))
+  ;;               collect bad)))
+  ;;    (if bad-hosts
+  ;;        (error (format "tls misconfigured; retrieved %s ok" bad-hosts))
+  ;;      (url-retrieve "https://badssl.com"
+  ;;                    (lambda (retrieved) t))))
+#+END_SRC
+
+
