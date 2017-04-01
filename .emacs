@@ -1,4 +1,4 @@
-(custom-set-variables
+ (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
@@ -9,6 +9,8 @@
  '(blink-cursor-mode nil)
  '(cursor-type (quote (bar . 4)))
  '(custom-enabled-themes (quote (wheatgrass)))
+ '(display-time-24hr-format t)
+ '(haskell-font-lock-symbols nil)
  '(ido-mode (quote buffer) nil (ido))
  '(inferior-lisp-program "clisp")
  '(preview-gs-options
@@ -20,7 +22,12 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(cursor ((t (:background "deep sky blue" :box nil :width extra-expanded))))
+ '(haskell-constructor-face ((t (:foreground "orange red"))))
+ '(haskell-definition-face ((t (:foreground "deep sky blue"))))
+ '(haskell-keyword-face ((t (:foreground "orange"))))
  '(hl-line ((t (:background "gray21"))))
+ '(isearch ((t (:background "lime green" :foreground "black"))))
+ '(lazy-highlight ((t (:background "dark slate blue" :foreground "yellow"))))
  '(region ((t (:background "dark green" :foreground "white")))))
 
 (require 'package)
@@ -131,6 +138,7 @@
      (matlab . t)
      (octave . t)
      (sh . t)
+     (haskell . t)
      ))
 
 (global-set-key (kbd "<C-up>") 'shrink-window)
@@ -140,7 +148,7 @@
 
 
 
-(add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
+;; (add-hook 'haskell-mode-hook 'turn-on-haskell-indentation)
 
 ;; multiple cursors
 (require 'multiple-cursors)
@@ -530,4 +538,67 @@ narrowed."
   (defengine youtube
     "http://www.youtube.com/results?aq=f&oq=&search_query=%s"
     :keybinding "y")
+  (defengine hoogle
+    "https://www.haskell.org/hoogle/?hoogle=%s"
+    :keybinding "h")
   (engine-mode t))
+
+(use-package yasnippet
+  :ensure t)
+
+(use-package haskell-mode
+  :ensure t
+  :config
+  (add-hook 'haskell-mode-hook 'haskell-indentation-mode)
+  (add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+  (add-hook 'haskell-mode-hook 'yas-minor-mode)
+  (add-hook 'haskell-mode-hook 'flyspell-prog-mode))
+
+(use-package tide
+  :ensure t)
+
+(use-package company
+  :ensure t)
+
+;; Typescript stuff for the AI course
+(defun setup-tide-mode ()
+  (interactive)
+  (tide-setup)
+  (flycheck-mode +1)
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  ;; company is an optional dependency. You have to
+  ;; install it separately via package-install
+  ;; `M-x package-install [ret] company`
+  (company-mode +1))
+
+;; aligns annotation to the right hand side
+(setq company-tooltip-align-annotations t)
+
+;; formats the buffer before saving
+(add-hook 'before-save-hook 'tide-format-before-save)
+
+(add-hook 'typescript-mode-hook #'setup-tide-mode)
+
+(setq tide-format-options '(:insertSpaceAfterFunctionKeywordForAnonymousFunctions t :placeOpenBraceOnNewLineForFunctions nil))
+
+
+;; END of typescript stuff
+
+(use-package figlet
+  :ensure t)
+
+(display-time-mode 1)
+(display-battery-mode 1)
+
+
+(use-package simple-mpc
+  :ensure t)
+
+
+(use-package elpy
+  :ensure t
+  :config
+  (elpy-enable))
+
