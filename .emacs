@@ -181,7 +181,10 @@
 ;; Erlang indentation
 (setq erlang-indent-level 4)
 
-
+;;(use-package company-erlang
+;;  :ensure t
+;;  :config
+;;  (add-hook 'erlang-mode-hook #'company-erlang-init))
 
 
 (add-to-list 'package-archives
@@ -571,7 +574,11 @@ narrowed."
   ;; company is an optional dependency. You have to
   ;; install it separately via package-install
   ;; `M-x package-install [ret] company`
-  (company-mode +1))
+  (company-mode +1)
+  (local-set-key (kbd "\C-ci") 'tide-jump-to-implementation)
+  (local-set-key (kbd "\C-cr") 'tide-rename-symbol)
+  (local-set-key (kbd "\C-cb") 'tide-jump-back)
+  (local-set-key (kbd "\C-cq") 'tide-documentation-at-point))
 
 ;; aligns annotation to the right hand side
 (setq company-tooltip-align-annotations t)
@@ -602,3 +609,16 @@ narrowed."
   :config
   (elpy-enable))
 
+(use-package org-journal
+  :ensure t)
+
+(define-key global-map "\C-cc" 'org-capture)
+(setq org-default-notes-file (concat org-directory "/notes.org"))
+
+(setq org-capture-templates
+      '(("t" "Todo list entry" entry (file+headline org-default-notes-file "Tasks") "* TODO %?\n %i\n %a")
+        ("j" "Journal entry" entry (file+datetree "~/org/journal.org") (file "~/org/journal.orgcaptmpl"))))
+
+
+(use-package paredit
+  :ensure t)
