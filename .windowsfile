@@ -44,9 +44,6 @@
              '("melpa-stable" . "http://stable.melpa.org/packages/") t)
 (package-initialize)
 
-;; Fix zsh shell
-(setenv "ESHELL" (expand-file-name "~/bin/eshell"))
-
 ;; Fix annoying shit in widnwos
 (setq create-lockfiles nil)
 
@@ -91,6 +88,7 @@
 (setq frame-title-format
       (concat  "%b - emacs@" system-name))
 
+;; TODO do I want this?
 (add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 ;; No tabs please
@@ -167,7 +165,7 @@
 ;; multiple cursors
 (use-package multiple-cursors
   :ensure t
-  :config
+  :config ;; TODO fix keybindings, mb C-. and C-,
   (global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
   (global-set-key (kbd "C->") 'mc/mark-next-like-this)
   (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
@@ -180,17 +178,6 @@
 (defun my-jde-mode-hook ()
   (setq c-basic-offset 2))
 
-;; (add-hook 'jde-mode-hook 'my-jde-mode-hook)
-;; (add-hook 'java-mode-hook 'my-jde-mode-hook)
-
-;; (setq jdee-server-dir "/home/neon/myJars/jdeeserver")
-
-
-
-;; Autocomplete tabs Not needed anymore.
-                                        ; (global-set-key (kbd "C-<tab>") 'dabbrev-expand)
-                                        ; (define-key minibuffer-local-map (kbd "C-<tab>") 'dabbrev-expand)
-
 ;; Better scrolling
 (setq mouse-wheel-scroll-amount '(1 ((shift) . 1) ((control) . nil)))
 (setq mouse-wheel-progressive-speed nil)
@@ -198,16 +185,13 @@
 ;; Erlang indentation
 (setq erlang-indent-level 4)
 
-
-
-
 (add-to-list 'package-archives
              '("melpa" . "http://melpa.org/packages/") t)
 
 ;; Autocompleteion
 (use-package auto-complete
   :ensure t
-  :config
+  :config ;; TODO mb remove when using company
   (global-auto-complete-mode t)
   (defun auto-complete-mode-maybe ()
     "No maybe for you. Only AC!"
@@ -233,14 +217,11 @@
   :config
   (global-set-key (kbd "C-x g") 'magit-status))
 
-
-
 (set-face-attribute 'default nil :height 170)
 
 ;; better pdf viewer.
 (use-package pdf-tools
   :ensure t)
-
 
 ;; remove error from this file
 (setq-default flycheck-disabled-checkers '(emacs-lisp-checkdoc))
@@ -281,7 +262,7 @@
 
 (global-set-key [remap goto-line] 'goto-line-with-feedback)
 
-(defun goto-line-with-feedback ()
+(defun goto-line-with-feedback () ;; TODO remove this and always show line numbers
   "Show line numbers temporarily, while prompting for the line number input"
   (interactive)
   (unwind-protect
@@ -508,7 +489,7 @@ narrowed."
 ;; google=this might conflict here some.
 (use-package engine-mode
   :ensure t
-  :config
+  :config ;; TODO add tyda.se for translation
   (defengine github
     "https://github.com/search?ref=simplesearch&q=%s")
   (defengine duckduckgo
@@ -620,3 +601,17 @@ narrowed."
   :ensure t
   :config
   (add-hook 'haskell-mode-hook (lambda () (interactive) (column-marker-1 80))))
+
+(use-package org-journal
+  :ensure t)
+
+(define-key global-map "\C-cc" 'org-capture)
+(setq org-default-notes-file (concat org-directory "/notes.org"))
+
+(setq org-capture-templates
+      '(("t" "Todo list entry" entry (file+headline org-default-notes-file "Tasks") "* TODO %?\n %i\n %a")
+        ("j" "Journal entry" entry (file+datetree "~/org/journal.org") (file "~/org/journal.orgcaptmpl"))))
+
+
+(use-package paredit
+  :ensure t)
