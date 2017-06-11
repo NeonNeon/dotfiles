@@ -613,5 +613,13 @@ narrowed."
         ("j" "Journal entry" entry (file+datetree "~/org/journal.org") (file "~/org/journal.orgcaptmpl"))))
 
 
+;;
+;; Contents of org/journal.orgcaptmpl
+;; 
+;; **** %U %^{Title}
+;;      %?
+;;
+;;
+
 (use-package paredit
   :ensure t)
