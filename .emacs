@@ -1,39 +1,60 @@
- (custom-set-variables
+ 
+(custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-faces-vector
+   [default default default italic underline success warning error])
  '(ansi-color-names-vector
    ["black" "#d55e00" "#009e73" "#f8ec59" "#0072b2" "#cc79a7" "#56b4e9" "white"])
  '(blink-cursor-interval 0.5)
  '(blink-cursor-mode nil)
- '(cursor-type (quote (bar . 4)))
- '(custom-enabled-themes (quote (wheatgrass)))
+ '(cursor-type '(bar . 4))
+ '(custom-enabled-themes '(wheatgrass))
  '(display-time-24hr-format t)
  '(haskell-font-lock-symbols nil)
- '(ido-mode (quote buffer) nil (ido))
- '(inferior-lisp-program "clisp")
+ '(ido-mode 'buffer nil (ido))
+ '(inferior-lisp-program "clisp" t)
+ '(initial-buffer-choice t)
+ '(js-indent-level 4)
+ '(org-hide-emphasis-markers t)
+ '(package-selected-packages
+   '(eshell-git-prompt visual-fill-column json-reformat prettier-js zenburn-theme wttrin which-key use-package tide smartparens slime simple-mpc popup-kill-ring peep-dired pdf-tools paredit org-journal org-bullets multiple-cursors monokai-theme monokai-alt-theme memoize matlab-mode magithub kotlin-mode iedit ido-vertical-mode hungry-delete htmlize highlight-parentheses highlight-indent-guides haskell-mode groovy-mode google-this go-guru gnuplot-mode ggo-mode flycheck-tip flycheck-cython flx-ido figlet expand-region epc engine-mode elpy dired-narrow diminish diff-hl cython-mode company-go company-erlang color-theme-sanityinc-tomorrow color-theme beacon auto-complete auctex ace-window))
  '(preview-gs-options
-   (quote
-    ("-q" "-dNOPAUSE" "-DNOPLATFONTS" "-dPrinted" "-dTextAlphaBits=4" "-dGraphicsAlphaBits=4" "-dNOSAFER"))))
+   '("-q" "-dNOPAUSE" "-DNOPLATFONTS" "-dPrinted" "-dTextAlphaBits=4" "-dGraphicsAlphaBits=4" "-dNOSAFER"))
+ '(python-shell-interpreter "python3.6")
+ '(temporary-file-directory "/home/neon/tmp/")
+ '(text-scale-mode-step 1.04))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(cursor ((t (:background "deep sky blue" :box nil :width extra-expanded))))
+ '(font-lock-comment-face ((t (:foreground "tomato"))))
  '(haskell-constructor-face ((t (:foreground "orange red"))))
  '(haskell-definition-face ((t (:foreground "deep sky blue"))))
  '(haskell-keyword-face ((t (:foreground "orange"))))
+ '(highlight ((t (:background "gray35" :foreground unspecified))))
  '(hl-line ((t (:background "gray21"))))
  '(isearch ((t (:background "lime green" :foreground "black"))))
  '(lazy-highlight ((t (:background "dark slate blue" :foreground "yellow"))))
- '(region ((t (:background "dark green" :foreground "white")))))
+ '(region ((t (:inherit nil :background "gray35" :foreground unspecified)))))
 
 (require 'package)
-(add-to-list 'package-archives
-             '("melpa-stable" . "http://stable.melpa.org/packages/") t)
+(defvar gnu '("gnu" . "https://elpa.gnu.org/packages/"))
+(defvar melpa '("melpa" . "https://melpa.org/packages/"))
+(defvar melpa-stable '("melpa-stable" . "https://stable.melpa.org/packages/"))
+
+;; Add marmalade to package repos
+(setq package-archives nil)
+(add-to-list 'package-archives melpa-stable t)
+(add-to-list 'package-archives melpa t)
+(add-to-list 'package-archives gnu t)
 (package-initialize)
+
+(setq load-prefer-newer t)
 
 ;; Fix zsh shell
 (setenv "ESHELL" (expand-file-name "~/bin/eshell"))
@@ -43,6 +64,29 @@
 ;;                                           "$SHELL -l -c 'echo $PATH'"))))
 ;;   (setenv "PATH" path-from-shell)
 ;;   (setq exec-path (split-string path-from-shell path-separator)))
+
+;; Rebind C-x o
+(global-set-key (kbd "M-o") 'other-window)
+
+;; I should start using imenu
+(global-set-key (kbd "M-i") 'imenu)
+
+
+;; (windmove-default-keybindings)
+;; You can now switch windows with your shift
+;; key by pressing S-<left> , S-<right> , S-<up> ,
+;; S-<down> .
+
+;; glasses mode for camel case code
+
+(defun sudo ()
+  "Use TRAMP to `sudo' the current buffer"
+  (interactive)
+  (when buffer-file-name
+    (find-alternate-file
+     (concat "/sudo:root@localhost:"
+             buffer-file-name))))
+
 
 ;; create more beautiful code blocks in the scource code
 (defface org-block-begin-line
@@ -122,6 +166,10 @@
 
 ;; highlight current line
 (global-hl-line-mode 1)
+(global-diff-hl-mode 1)
+;;When using Magit 2.4 or newer, add this to your init script:
+(add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+
 
 ;; turn off toolbar
 (tool-bar-mode -1)
@@ -137,7 +185,7 @@
      (latex . t)
      (matlab . t)
      (octave . t)
-     (sh . t)
+     (shell . t)
      (haskell . t)
      ))
 
@@ -157,11 +205,11 @@
 
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+(global-set-key (kbd "C-:") 'mc/mark-all-like-this)
 
 ;; Fix java indentation
-(defun my-jde-mode-hook ()
-  (setq c-basic-offset 2))
+;;(defun my-jde-mode-hook ()
+;;  (setq c-basic-offset 2))
 
 ;; (add-hook 'jde-mode-hook 'my-jde-mode-hook)
 ;; (add-hook 'java-mode-hook 'my-jde-mode-hook)
@@ -181,18 +229,18 @@
 ;; Erlang indentation
 (setq erlang-indent-level 4)
 
+(setq python-indent-offset 2)
+
 ;;(use-package company-erlang
 ;;  :ensure t
 ;;  :config
 ;;  (add-hook 'erlang-mode-hook #'company-erlang-init))
 
 
-(add-to-list 'package-archives
-             '("melpa" . "http://melpa.org/packages/") t)
 
 ;; Autocompleteion
 (require 'auto-complete)
-(global-auto-complete-mode t)
+;; (global-auto-complete-mode t)
 
 (defun auto-complete-mode-maybe ()
   "No maybe for you. Only AC!"
@@ -212,27 +260,28 @@
 (setq ac-auto-start t)
 (setq ac-auto-show-menu t)
 
-(add-hook 'after-init-hook #'global-flycheck-mode)
 
 (global-set-key (kbd "C-x g") 'magit-status)
+(global-set-key (kbd "C-x M-g") 'magit-dispatch-popup)
 
 (set-face-attribute 'default nil :height 170)
 ;; Matlab
 (add-to-list 'exec-path "/home/neon/opt/matlabinstallation/bin")
+(add-to-list 'exec-path "/usr/bin/gnuplot")
 ;(setq exec-path '())
 
 (add-to-list 'load-path "~/.emacs.d/elpa/matlab-mode-20160902.459/matlab.el")
-(load-library "matlab-load")
+;; (load-library "matlab-load")
 ;; Enable CEDET feature support for MATLAB code. (Optional)
-(matlab-cedet-setup)
+;; (matlab-cedet-setup)
 
-(autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
+;; (autoload 'matlab-mode "matlab" "Matlab Editing Mode" t)
 (add-to-list
  'auto-mode-alist
  '("\\.m$" . matlab-mode))
 (setq matlab-indent-function t)
 (setq matlab-shell-command "matlab")
-
+(setq matlab-indent-level 2)
 ;; better pdf viewer.
 (pdf-tools-install)
 
@@ -290,23 +339,13 @@
   (setq wttrin-default-cities '("Göteborg")))
 
 
-(global-set-key [remap goto-line] 'goto-line-with-feedback)
-
-(defun goto-line-with-feedback ()
-  "Show line numbers temporarily, while prompting for the line number input"
-  (interactive)
-  (unwind-protect
-      (progn
-        (linum-mode 1)
-        (goto-line (read-number "Goto line: ")))
-    (linum-mode -1)))
-
 (defun tf-toggle-show-trailing-whitespace ()
   "Toggle show-trailing-whitespace between t and nil"
   (interactive)
   (setq show-trailing-whitespace (not show-trailing-whitespace))
   (redraw-display))
 
+(setq show-trailing-whitespace t) ;; default on
 (global-set-key (kbd "M-p") 'tf-toggle-show-trailing-whitespace)
 
 ;; Require org mode to be able to export to markdown
@@ -332,11 +371,19 @@
                  (face-remap-remove-relative remap-cookie))
                (face-remap-add-relative 'default 'flash-active-buffer-face)))
 
+;; (use-package monokai-alt-theme
+  ;; :ensure t
+  ;; :config (load-theme 'monokai-alt t))
+(use-package color-theme-sanityinc-tomorrow
+  :ensure t
+  :config (load-theme 'sanityinc-tomorrow-eighties t))
+
+
 
 ;; Highlight current frame
 (set-face-attribute  'mode-line
                  nil 
-                 :foreground "misty_rose"
+                 :foreground "misty rose"
                  :background "#000075" 
                  :box '(:line-width 1 :style released-button))
 (set-face-attribute  'mode-line-inactive
@@ -346,7 +393,7 @@
                  :box '(:line-width 1 :style released-button))
 
 
-;; Which-key shows what keys I can press to do commands
+;; which-key shows what keys I can press to do commands
 (use-package which-key
   :ensure t
   :config
@@ -480,10 +527,10 @@ narrowed."
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))))
 
 ;; remove all whitespace with one key stroke.
-(use-package hungry-delete
-  :ensure t
-  :config
-  (global-hungry-delete-mode))
+; (use-package hungry-delete
+;   :ensure t
+;   :config
+;   (global-hungry-delete-mode))
 
 ;; Toggle between vertical split and horizontal split
 ;; Only works when working with 2 windows.
@@ -528,6 +575,9 @@ narrowed."
   (defengine google
     "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
     :keybinding "g")
+  (defengine thesaurus
+    "http://www.thesaurus.com/browse/%s?s=t"
+    :keybinding "t")
   (defengine stack-overflow
     "https://stackoverflow.com/search?q=%s"
     :keybinding "s")
@@ -544,6 +594,9 @@ narrowed."
   (defengine hoogle
     "https://www.haskell.org/hoogle/?hoogle=%s"
     :keybinding "h")
+  (defengine tyda
+    "http://tyda.se/search/%s"
+    :keybinding "w") ; W-hat does this mean?
   (engine-mode t))
 
 (use-package yasnippet
@@ -604,21 +657,155 @@ narrowed."
   :ensure t)
 
 
-(use-package elpy
-  :ensure t
-  :config
-  (elpy-enable))
+(setq highlight-indent-guides-method 'character)
+
+ (use-package elpy
+   :ensure t
+   :commands elpy-enable
+   :init (elpy-enable)
+   :config (highlight-indent-guides-mode))
 
 (use-package org-journal
   :ensure t)
+
+;; Make sure we use listings for latex
+(add-to-list 'org-latex-packages-alist '("" "listings" nil))
+(setq org-latex-listings t)
+;; Break lines, trying to get shorter source blocks
+(setq org-latex-listings-options '(("breaklines" "true")))
 
 (define-key global-map "\C-cc" 'org-capture)
 (setq org-default-notes-file (concat org-directory "/notes.org"))
 
 (setq org-capture-templates
       '(("t" "Todo list entry" entry (file+headline org-default-notes-file "Tasks") "* TODO %?\n %i\n %a")
-        ("j" "Journal entry" entry (file+datetree "~/org/journal.org") (file "~/org/journal.orgcaptmpl"))))
+        ("j" "Journal entry" entry (file+datetree "~/org/journal.org") (file "~/org/journal.orgcaptmpl"))
+        ;; For marked area
+        ("c"    ; key
+         "Code" ; name
+         entry  ; type
+         (file+headline "~/notes.org" "Code") ; target
+         "* TODO %^{TITLE} %^G\n:PROPERTIES:\n:Created: %U:Source: %a\n:END:\n%i%?" ; template
+         :prepend t   ; properties
+         :empty-lines 1   ; properties
+         :created t   ; properties
+         :kill-buffer t) ; properties
+        ))
 
 
 (use-package paredit
   :ensure t)
+
+;; Promela for software engineering using formal methods
+;; (add-to-list 'load-path "/home/neon/Documents/TDA294/promela-mode")
+;; (require 'promela-mode)
+;; (add-to-list 'auto-mode-alist '("\\.pml\\'" . promela-mode))
+;; (setq promela-auto-match-delimiter nil)
+
+
+
+(add-to-list 'load-path "~/.emacs.d/lisp/")
+(require 'go-guru)
+
+
+
+
+(use-package go-mode
+  :ensure t
+  :config
+  (add-hook 'before-save-hook 'gofmt-before-save)
+  (add-hook 'go-mode-hook (lambda ()
+                            (local-set-key (kbd "C-c C-r") 'go-remove-unused-imports)))
+  (add-hook 'go-mode-hook (lambda ()
+                            (local-set-key (kbd "C-c i") 'go-goto-imports)))
+  (add-hook 'go-mode-hook (lambda ()
+                            (local-set-key (kbd "M-.") 'godef-jump)))
+  (add-hook 'go-mode-hook
+      (lambda ()
+        (set (make-local-variable 'company-backends) '(company-go))
+        (company-mode)))
+  (add-hook 'go-mode-hook (lambda()
+                            (setq default-tab-width 4)))
+  (add-hook 'go-mode-hook #'go-guru-hl-identifier-mode))
+
+;; C-x C-l nice function
+(put 'downcase-region 'disabled nil)
+
+;; I like line numbers atm
+(global-linum-mode 1)
+;; (add-hook 'prog-mode-hook 'linum-mode)
+(setq linum-format "%d") ;; leave extra space to allow for other indicators
+
+(use-package slime
+  :ensure t
+  :config
+  ;; Set your lisp system and, optionally, some contribs
+  (setq inferior-lisp-program "/usr/bin/sbcl")
+  (setq slime-contribs '(slime-fancy))
+  (add-hook 'slime-lisp-mode-hook 'paredit-mode)
+  )
+
+;; https://emacs.stackexchange.com/questions/3374/set-the-background-of-org-exported-code-blocks-according-to-theme
+(defun my/org-inline-css-hook (exporter)
+  "Insert custom inline css to automatically set the
+background of code to whatever theme I'm using's background"
+  (when (eq exporter 'html)
+    (let* ((my-pre-bg (face-background 'default))
+           (my-pre-fg (face-foreground 'default)))
+      (setq
+       org-html-head-extra
+       (concat
+        org-html-head-extra
+        (format "<style type=\"text/css\">\n pre.src {background-color: %s; color: %s;}</style>\n"
+                my-pre-bg my-pre-fg))))))
+
+(add-hook 'org-export-before-processing-hook 'my/org-inline-css-hook)
+
+(global-set-key (kbd "C-c C-1") 'ispell-word)
+(defun flyspell-check-next-highlighted-word ()
+  "Custom function to spell check next highlighted word"
+  (interactive)
+  (flyspell-goto-next-error)
+  (ispell-word))
+(global-set-key (kbd "C-c 1") 'flyspell-check-next-highlighted-word)
+
+
+(put 'upcase-region 'disabled nil)
+
+;; Take away the scroll bar
+(scroll-bar-mode -1)
+(global-set-key (kbd "C-;") #'comment-line)
+
+;; trying to fix font
+(add-to-list 'default-frame-alist
+                       '(font . "DejaVu Sans Mono-16"))
+
+
+(use-package color-theme
+  :ensure t)
+
+(add-hook 'prog-mode-hook 'highlight-indent-guides-mode)
+(add-hook 'cython-mode-hook 'highlight-indent-guides-mode)
+(add-hook 'python-mode-hook 'superword-mode)
+
+(use-package magithub
+  :after magit
+  :config
+  (magithub-feature-autoinject t)
+  (setq magithub-clone-default-directory "~/github"))
+
+(use-package prettier-js
+  :ensure t
+  :config
+  (add-hook 'js2-mode-hook 'prettier-js-mode)
+  (add-hook 'web-mode-hook 'prettier-js-mode))
+
+(setq-default word-wrap t)
+
+(setq scroll-conservatively 101) ;; move minimum when cursor exits view, instead of recentering
+(setq mouse-wheel-scroll-amount '(1)) ;; mouse scroll moves 1 line at a time, instead of 5 lines
+(setq mouse-wheel-progressive-speed nil) ;; on a long mouse scroll keep scrolling by 1 line
+
+
+(setq elpy-rpc-python-command "python3.6")
+(setq comint-scroll-to-bottom-on-input t)
