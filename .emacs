@@ -20,7 +20,7 @@
  '(js-indent-level 4)
  '(org-hide-emphasis-markers t)
  '(package-selected-packages
-   '(eshell-git-prompt visual-fill-column json-reformat prettier-js zenburn-theme wttrin which-key use-package tide smartparens slime simple-mpc popup-kill-ring peep-dired pdf-tools paredit org-journal org-bullets multiple-cursors monokai-theme monokai-alt-theme memoize matlab-mode magithub kotlin-mode iedit ido-vertical-mode hungry-delete htmlize highlight-parentheses highlight-indent-guides haskell-mode groovy-mode google-this go-guru gnuplot-mode ggo-mode flycheck-tip flycheck-cython flx-ido figlet expand-region epc engine-mode elpy dired-narrow diminish diff-hl cython-mode company-go company-erlang color-theme-sanityinc-tomorrow color-theme beacon auto-complete auctex ace-window))
+   '(clang-format eshell-git-prompt visual-fill-column json-reformat prettier-js zenburn-theme wttrin which-key use-package tide smartparens slime simple-mpc popup-kill-ring peep-dired pdf-tools paredit org-journal org-bullets multiple-cursors monokai-theme monokai-alt-theme memoize matlab-mode magithub kotlin-mode iedit ido-vertical-mode hungry-delete htmlize highlight-parentheses highlight-indent-guides haskell-mode groovy-mode google-this go-guru gnuplot-mode ggo-mode flycheck-tip flycheck-cython flx-ido figlet expand-region epc engine-mode elpy dired-narrow diminish diff-hl cython-mode company-go company-erlang color-theme-sanityinc-tomorrow color-theme beacon auto-complete auctex ace-window))
  '(preview-gs-options
    '("-q" "-dNOPAUSE" "-DNOPLATFONTS" "-dPrinted" "-dTextAlphaBits=4" "-dGraphicsAlphaBits=4" "-dNOSAFER"))
  '(python-shell-interpreter "python3.6")
@@ -732,8 +732,10 @@ narrowed."
 (put 'downcase-region 'disabled nil)
 
 ;; I like line numbers atm
-(global-linum-mode 1)
-;; (add-hook 'prog-mode-hook 'linum-mode)
+;;(global-linum-mode 1)
+(global-display-line-numbers-mode)
+
+
 (setq linum-format "%d") ;; leave extra space to allow for other indicators
 
 (use-package slime
@@ -809,3 +811,12 @@ background of code to whatever theme I'm using's background"
 
 (setq elpy-rpc-python-command "python3.6")
 (setq comint-scroll-to-bottom-on-input t)
+
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (toggle-read-only)
+  (ansi-color-apply-on-region compilation-filter-start (point))
+  (toggle-read-only))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+
+(define-key c++-mode-map [f5] #'compile)
